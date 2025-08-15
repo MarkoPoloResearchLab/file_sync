@@ -1,4 +1,4 @@
-package syncmd
+package sync
 
 import (
 	"os"

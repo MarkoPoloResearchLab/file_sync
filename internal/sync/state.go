@@ -1,4 +1,4 @@
-package syncmd
+package sync
 
 import (
 	"crypto/sha256"
@@ -87,4 +87,3 @@ func (s *stateStore) ensureAncestorStored(content []byte) (string, error) {
 	}
 	return hexDigest, nil
 }
-
