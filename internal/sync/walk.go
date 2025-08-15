@@ -1,4 +1,4 @@
-package syncmd
+package sync
 
 import (
 	"path/filepath"
@@ -25,4 +25,3 @@ func shouldIgnoreName(fileName string, ignoreNames []string) bool {
 	}
 	return false
 }
-

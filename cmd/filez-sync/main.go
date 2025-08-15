@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	syncmd "github.com/MarkoPoloResearchLab/file_sync"
 	"github.com/MarkoPoloResearchLab/file_sync/internal/logging"
+	syncpkg "github.com/MarkoPoloResearchLab/file_sync/internal/sync"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -29,7 +29,7 @@ var (
 				return err
 			}
 
-			options := syncmd.Options{
+			options := syncpkg.Options{
 				RootAPath:            args[0],
 				RootBPath:            args[1],
 				StateDirectory:       stateDir,
@@ -52,7 +52,7 @@ var (
 				ConflictMtimeEpsilonSeconds: 1.0,
 			}
 
-			result, err := syncmd.RunSync(options, logger)
+			result, err := syncpkg.RunSync(options, logger)
 			if err != nil {
 				logger.Error("synchronization failed", zap.Error(err))
 				return err
