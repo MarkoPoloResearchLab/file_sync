@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 func newTempDir(t *testing.T) string {
@@ -58,7 +60,7 @@ func TestCreateFromSideA(t *testing.T) {
 	writeFile(t, filepath.Join(rootA, "Personal", "Note.md"), "hello")
 	opts := defaultOptions(rootA, rootB, stateDir)
 
-	res, err := RunSync(opts)
+	res, err := RunSync(opts, zap.NewNop())
 	if err != nil {
 		t.Fatalf("sync err: %v", err)
 	}
@@ -80,7 +82,7 @@ func TestEqualNoChange(t *testing.T) {
 	writeFile(t, filepath.Join(rootB, "a.md"), "same")
 
 	opts := defaultOptions(rootA, rootB, stateDir)
-	res, err := RunSync(opts)
+	res, err := RunSync(opts, zap.NewNop())
 	if err != nil {
 		t.Fatalf("sync err: %v", err)
 	}
@@ -104,7 +106,7 @@ func TestSeedConflictNewerWins(t *testing.T) {
 	}
 
 	opts := defaultOptions(rootA, rootB, stateDir)
-	res, err := RunSync(opts)
+	res, err := RunSync(opts, zap.NewNop())
 	if err != nil {
 		t.Fatalf("sync err: %v", err)
 	}
@@ -131,14 +133,14 @@ func TestThreeWayAfterSeed(t *testing.T) {
 	writeFile(t, filepath.Join(rootB, "t.md"), "line1\n")
 
 	opts := defaultOptions(rootA, rootB, stateDir)
-	if _, err := RunSync(opts); err != nil {
+	if _, err := RunSync(opts, zap.NewNop()); err != nil {
 		t.Fatalf("initial sync: %v", err)
 	}
 
 	writeFile(t, filepath.Join(rootA, "t.md"), "line1\nA\n")
 	writeFile(t, filepath.Join(rootB, "t.md"), "line1\nB\n")
 
-	res, err := RunSync(opts)
+	res, err := RunSync(opts, zap.NewNop())
 	if err != nil {
 		t.Fatalf("merge sync: %v", err)
 	}
@@ -161,7 +163,7 @@ func TestIgnores(t *testing.T) {
 	writeFile(t, filepath.Join(rootA, "kept.md"), "K")
 	opts := defaultOptions(rootA, rootB, stateDir)
 
-	res, err := RunSync(opts)
+	res, err := RunSync(opts, zap.NewNop())
 	if err != nil {
 		t.Fatalf("sync err: %v", err)
 	}

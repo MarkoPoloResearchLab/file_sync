@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"sort"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 type SyncResult struct {
@@ -16,7 +18,7 @@ type SyncResult struct {
 }
 
 // RunSync performs a bidirectional synchronization between two roots.
-func RunSync(options Options) (SyncResult, error) {
+func RunSync(options Options, logger *zap.Logger) (SyncResult, error) {
 	var result SyncResult
 	result.ActionCounters = map[string]int{
 		"A<-B (create)": 0,
@@ -30,6 +32,9 @@ func RunSync(options Options) (SyncResult, error) {
 
 	store, state, err := createOrOpenStateStore(options.StateDirectory)
 	if err != nil {
+		if logger != nil {
+			logger.Error("open state store", zap.Error(err))
+		}
 		return result, err
 	}
 
@@ -59,6 +64,9 @@ func RunSync(options Options) (SyncResult, error) {
 		return nil
 	})
 	if err != nil {
+		if logger != nil {
+			logger.Error("walk root A", zap.String("root", options.RootAPath), zap.Error(err))
+		}
 		return result, err
 	}
 
@@ -86,6 +94,9 @@ func RunSync(options Options) (SyncResult, error) {
 		return nil
 	})
 	if err != nil {
+		if logger != nil {
+			logger.Error("walk root B", zap.String("root", options.RootBPath), zap.Error(err))
+		}
 		return result, err
 	}
 
@@ -99,8 +110,11 @@ func RunSync(options Options) (SyncResult, error) {
 	result.Diff3Available = diff3Available
 
 	for _, relativePath := range relativeList {
-		changed, tag, procErr := processSingleFile(relativePath, options, store, state, diff3Available)
+		changed, tag, procErr := processSingleFile(relativePath, options, store, state, diff3Available, logger)
 		if procErr != nil {
+			if logger != nil {
+				logger.Error("process file", zap.String("path", relativePath), zap.Error(procErr))
+			}
 			return result, procErr
 		}
 		if changed {
@@ -110,6 +124,9 @@ func RunSync(options Options) (SyncResult, error) {
 	}
 
 	if err := store.save(state); err != nil {
+		if logger != nil {
+			logger.Error("save state", zap.Error(err))
+		}
 		return result, err
 	}
 	return result, nil
@@ -138,7 +155,7 @@ func writeAllEnsure(path string, data []byte) error {
 	return os.WriteFile(path, data, 0o644)
 }
 
-func processSingleFile(relativePath string, options Options, store *stateStore, state *syncState, diff3Available bool) (bool, string, error) {
+func processSingleFile(relativePath string, options Options, store *stateStore, state *syncState, diff3Available bool, logger *zap.Logger) (bool, string, error) {
 	pathA := filepath.Join(options.RootAPath, relativePath)
 	pathB := filepath.Join(options.RootBPath, relativePath)
 
@@ -153,13 +170,22 @@ func processSingleFile(relativePath string, options Options, store *stateStore, 
 	if existsA && !existsB {
 		content, readErr := readAll(pathA)
 		if readErr != nil {
+			if logger != nil {
+				logger.Error("read file", zap.String("path", pathA), zap.Error(readErr))
+			}
 			return false, "", readErr
 		}
 		if err := writeAllEnsure(pathB, content); err != nil {
+			if logger != nil {
+				logger.Error("write file", zap.String("path", pathB), zap.Error(err))
+			}
 			return false, "", err
 		}
 		hexDigest, ancErr := store.ensureAncestorStored(content)
 		if ancErr != nil {
+			if logger != nil {
+				logger.Error("store ancestor", zap.Error(ancErr))
+			}
 			return false, "", ancErr
 		}
 		state.FileEntry[relativePath] = stateEntry{AncestorHex: hexDigest}
@@ -169,13 +195,22 @@ func processSingleFile(relativePath string, options Options, store *stateStore, 
 	if existsB && !existsA {
 		content, readErr := readAll(pathB)
 		if readErr != nil {
+			if logger != nil {
+				logger.Error("read file", zap.String("path", pathB), zap.Error(readErr))
+			}
 			return false, "", readErr
 		}
 		if err := writeAllEnsure(pathA, content); err != nil {
+			if logger != nil {
+				logger.Error("write file", zap.String("path", pathA), zap.Error(err))
+			}
 			return false, "", err
 		}
 		hexDigest, ancErr := store.ensureAncestorStored(content)
 		if ancErr != nil {
+			if logger != nil {
+				logger.Error("store ancestor", zap.Error(ancErr))
+			}
 			return false, "", ancErr
 		}
 		state.FileEntry[relativePath] = stateEntry{AncestorHex: hexDigest}
@@ -189,10 +224,16 @@ func processSingleFile(relativePath string, options Options, store *stateStore, 
 
 	contentA, readAErr := readAll(pathA)
 	if readAErr != nil {
+		if logger != nil {
+			logger.Error("read file", zap.String("path", pathA), zap.Error(readAErr))
+		}
 		return false, "", readAErr
 	}
 	contentB, readBErr := readAll(pathB)
 	if readBErr != nil {
+		if logger != nil {
+			logger.Error("read file", zap.String("path", pathB), zap.Error(readBErr))
+		}
 		return false, "", readBErr
 	}
 
@@ -200,6 +241,9 @@ func processSingleFile(relativePath string, options Options, store *stateStore, 
 		if entry.AncestorHex == "" {
 			hexDigest, ancErr := store.ensureAncestorStored(contentA)
 			if ancErr != nil {
+				if logger != nil {
+					logger.Error("store ancestor", zap.Error(ancErr))
+				}
 				return false, "", ancErr
 			}
 			state.FileEntry[relativePath] = stateEntry{AncestorHex: hexDigest}
@@ -236,13 +280,22 @@ func processSingleFile(relativePath string, options Options, store *stateStore, 
 		}
 
 		if err := writeAllEnsure(pathA, merged); err != nil {
+			if logger != nil {
+				logger.Error("write file", zap.String("path", pathA), zap.Error(err))
+			}
 			return false, "", err
 		}
 		if err := writeAllEnsure(pathB, merged); err != nil {
+			if logger != nil {
+				logger.Error("write file", zap.String("path", pathB), zap.Error(err))
+			}
 			return false, "", err
 		}
 		hexDigest, ancErr := store.ensureAncestorStored(merged)
 		if ancErr != nil {
+			if logger != nil {
+				logger.Error("store ancestor", zap.Error(ancErr))
+			}
 			return false, "", ancErr
 		}
 		state.FileEntry[relativePath] = stateEntry{AncestorHex: hexDigest}
@@ -262,14 +315,23 @@ func processSingleFile(relativePath string, options Options, store *stateStore, 
 	})
 
 	if err := writeAllEnsure(pathA, merged); err != nil {
+		if logger != nil {
+			logger.Error("write file", zap.String("path", pathA), zap.Error(err))
+		}
 		return false, "", err
 	}
 	if err := writeAllEnsure(pathB, merged); err != nil {
+		if logger != nil {
+			logger.Error("write file", zap.String("path", pathB), zap.Error(err))
+		}
 		return false, "", err
 	}
 
 	hexDigest, ancErr := store.ensureAncestorStored(merged)
 	if ancErr != nil {
+		if logger != nil {
+			logger.Error("store ancestor", zap.Error(ancErr))
+		}
 		return false, "", ancErr
 	}
 	state.FileEntry[relativePath] = stateEntry{AncestorHex: hexDigest}
@@ -313,4 +375,3 @@ func absFloat64(x float64) float64 {
 	}
 	return x
 }
-
