@@ -8,10 +8,10 @@ import (
 )
 
 type mergeInputs struct {
-	BaseBytes    []byte
-	SideABytes   []byte
-	SideBBytes   []byte
-	UseDiff3     bool
+	BaseBytes  []byte
+	SideABytes []byte
+	SideBBytes []byte
+	UseDiff3   bool
 }
 
 func mergeThreeWay(inputs mergeInputs) ([]byte, bool) {
@@ -45,7 +45,7 @@ func mergeWithDiff3(base []byte, sideA []byte, sideB []byte) ([]byte, bool) {
 	if lookupErr != nil {
 		return nil, false
 	}
-	tempDir, tempErr := os.MkdirTemp("", "syncmd-merge-*")
+	tempDir, tempErr := os.MkdirTemp("", "filez-sync-merge-*")
 	if tempErr != nil {
 		return nil, false
 	}
@@ -75,4 +75,3 @@ func mergeWithDiff3(base []byte, sideA []byte, sideB []byte) ([]byte, bool) {
 	}
 	return nil, false
 }
-
