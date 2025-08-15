@@ -8,14 +8,27 @@ import (
 )
 
 func TestNewLoggerRespectsLogLevel(t *testing.T) {
-	viper.Set("log-level", "debug")
-	defer viper.Set("log-level", "")
-
-	logger, err := NewLogger()
-	if err != nil {
-		t.Fatalf("NewLogger returned error: %v", err)
+	cases := []struct {
+		name        string
+		level       string
+		enableDebug bool
+	}{
+		{"debug", "debug", true},
+		{"info", "info", false},
 	}
-	if !logger.Core().Enabled(zap.DebugLevel) {
-		t.Fatalf("expected debug level to be enabled")
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			viper.Set("log-level", tc.level)
+			defer viper.Set("log-level", "")
+
+			logger, err := NewLogger()
+			if err != nil {
+				t.Fatalf("NewLogger returned error: %v", err)
+			}
+			if logger.Core().Enabled(zap.DebugLevel) != tc.enableDebug {
+				t.Fatalf("debug enabled = %v, want %v", logger.Core().Enabled(zap.DebugLevel), tc.enableDebug)
+			}
+		})
 	}
 }
