@@ -34,6 +34,22 @@ go install ./cmd/filez-sync
 
 This will produce a binary `filez-sync`.
 
+### Docker
+
+A prebuilt image is published to the GitHub Container Registry whenever Go files change on `master`.
+
+```bash
+docker pull ghcr.io/<OWNER>/filez-sync:latest
+docker run --rm \
+  -v /path/to/vault_a:/a \
+  -v /path/to/vault_b:/b \
+  -v /path/to/state:/state \
+  ghcr.io/<OWNER>/filez-sync:latest \
+  /a /b --state-dir /state --include "*.md"
+```
+
+Replace `<OWNER>` with the GitHub username or organization that owns the repository.
+
 ---
 
 ## Usage
