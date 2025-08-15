@@ -1,6 +1,6 @@
-# File-sync
+# filez-sync
 
-A standalone Go tool for **bidirectional file synchronization** with proper **3-way merges** for Markdown (or any other text) files, designed to replace `unison` for cases where you need:
+`filez-sync` is a standalone Go tool for **bidirectional file synchronization** with proper **3-way merges** for Markdown (or any other text) files, designed to replace `unison` for cases where you need:
 
 * Persistent merge history (per-file ancestor snapshots)
 * Automatic use of `diff3` for conflict resolution
@@ -25,21 +25,21 @@ Tested for syncing two Obsidian vaults across directories, but works for any two
 ## Installation
 
 ### Prerequisites
-- Go 1.22+ (tested on Linux, macOS)
+- Go 1.24+ (tested on Linux, macOS)
 - (Optional) GNU `diff3` in `PATH` for better merge quality
 
 ```bash
-go install ./...
-````
+go install ./cmd/filez-sync
+```
 
-This will produce a binary `obsidian-3way-sync`.
+This will produce a binary `filez-sync`.
 
 ---
 
 ## Usage
 
 ```bash
-file-sync /path/to/vault_a /path/to/vault_b \
+filez-sync /path/to/vault_a /path/to/vault_b \
   --state-dir /path/to/state \
   --include "*.md"
 ```
@@ -76,7 +76,7 @@ file-sync /path/to/vault_a /path/to/vault_b \
 ## Example
 
 ```bash
-obsidian-3way-sync \
+filez-sync \
   ~/Documents/ObsidianVault \
   /mnt/backup/ObsidianVault \
   --state-dir ~/.obsidian-sync-state

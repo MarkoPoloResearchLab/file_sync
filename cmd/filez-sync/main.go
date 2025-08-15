@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"syncmd/internal/syncmd"
+	syncmd "github.com/MarkoPoloResearchLab/file_sync"
 )
 
 func main() {
@@ -19,7 +19,7 @@ func main() {
 	flag.Parse()
 
 	if flag.NArg() != 2 {
-		fmt.Fprintln(os.Stderr, "usage: syncmd [--state-dir DIR] [--include GLOB] [--no-backups] <root_a> <root_b>")
+		fmt.Fprintln(os.Stderr, "usage: filez-sync [--state-dir DIR] [--include GLOB] [--no-backups] <root_a> <root_b>")
 		os.Exit(2)
 	}
 
@@ -56,11 +56,10 @@ func main() {
 
 	result, runErr := syncmd.RunSync(options)
 	if runErr != nil {
-			fmt.Fprintln(os.Stderr, runErr.Error())
-			os.Exit(1)
+		fmt.Fprintln(os.Stderr, runErr.Error())
+		os.Exit(1)
 	}
 
 	fmt.Printf("changed=%d; actions=%v; diff3=%s\n",
 		result.ChangedFileCount, result.ActionCounters, map[bool]string{true: "yes", false: "no"}[result.Diff3Available])
 }
-

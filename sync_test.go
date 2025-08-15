@@ -6,11 +6,12 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 )
 
 func newTempDir(t *testing.T) string {
 	t.Helper()
-	dir, err := os.MkdirTemp("", "syncmd-test-*")
+	dir, err := os.MkdirTemp("", "filez-sync-test-*")
 	if err != nil {
 		t.Fatalf("mkdir temp: %v", err)
 	}
@@ -38,13 +39,13 @@ func readFile(t *testing.T, path string) string {
 
 func defaultOptions(rootA string, rootB string, stateDir string) Options {
 	return Options{
-		RootAPath:            rootA,
-		RootBPath:            rootB,
-		StateDirectory:       stateDir,
-		IncludeGlob:          "*.md",
-		IgnorePathPrefixes:   []string{".obsidian", ".git", "node_modules", "@eaDir", "#recycle"},
-		IgnoreFileNames:      []string{".Trash*", ".DS_Store", "._*", "Thumbs.db", "desktop.ini"},
-		CreateBackupsOnWrite: true,
+		RootAPath:                   rootA,
+		RootBPath:                   rootB,
+		StateDirectory:              stateDir,
+		IncludeGlob:                 "*.md",
+		IgnorePathPrefixes:          []string{".obsidian", ".git", "node_modules", "@eaDir", "#recycle"},
+		IgnoreFileNames:             []string{".Trash*", ".DS_Store", "._*", "Thumbs.db", "desktop.ini"},
+		CreateBackupsOnWrite:        true,
 		ConflictMtimeEpsilonSeconds: 1.0,
 	}
 }
@@ -174,7 +175,6 @@ func TestIgnores(t *testing.T) {
 	}
 }
 
-func testTime(sec int64) (t time) {
+func testTime(sec int64) time.Time {
 	return time.Unix(sec, 0)
 }
-
