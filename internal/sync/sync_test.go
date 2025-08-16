@@ -168,6 +168,86 @@ func TestRunSync(t *testing.T) {
 	}
 }
 
+func TestDiff3Present(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("diff3 tests skipped on Windows")
+	}
+
+	rootA := t.TempDir()
+	rootB := t.TempDir()
+	state := t.TempDir()
+
+	// Create a stub diff3 binary in PATH
+	stubDir := t.TempDir()
+	stubPath := filepath.Join(stubDir, "diff3")
+	if err := os.WriteFile(stubPath, []byte("#!/bin/sh\necho stub-merge\n"), 0o755); err != nil {
+		t.Fatalf("write stub: %v", err)
+	}
+	t.Setenv("PATH", stubDir)
+
+	// Seed state
+	writeFile(t, filepath.Join(rootA, "t.md"), "line1\n")
+	writeFile(t, filepath.Join(rootB, "t.md"), "line1\n")
+	opts := defaultOptions(rootA, rootB, state)
+	if _, err := syncpkg.RunSync(opts, zap.NewNop()); err != nil {
+		t.Fatalf("initial sync: %v", err)
+	}
+
+	// Make conflicting changes to trigger diff3
+	writeFile(t, filepath.Join(rootA, "t.md"), "line1\nA\n")
+	writeFile(t, filepath.Join(rootB, "t.md"), "line1\nB\n")
+
+	res, err := syncpkg.RunSync(opts, zap.NewNop())
+	if err != nil {
+		t.Fatalf("merge sync: %v", err)
+	}
+	if !res.Diff3Available {
+		t.Fatalf("expected diff3 available")
+	}
+	merged := readFile(t, filepath.Join(rootA, "t.md"))
+	if merged != "stub-merge\n" {
+		t.Fatalf("unexpected merged content: %q", merged)
+	}
+}
+
+func TestDiff3Missing(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("diff3 tests skipped on Windows")
+	}
+
+	rootA := t.TempDir()
+	rootB := t.TempDir()
+	state := t.TempDir()
+
+	// Set PATH to directory without diff3
+	emptyDir := t.TempDir()
+	t.Setenv("PATH", emptyDir)
+
+	// Seed state
+	writeFile(t, filepath.Join(rootA, "t.md"), "line1\n")
+	writeFile(t, filepath.Join(rootB, "t.md"), "line1\n")
+	opts := defaultOptions(rootA, rootB, state)
+	if _, err := syncpkg.RunSync(opts, zap.NewNop()); err != nil {
+		t.Fatalf("initial sync: %v", err)
+	}
+
+	// Make conflicting changes to trigger merge without diff3
+	writeFile(t, filepath.Join(rootA, "t.md"), "line1\nA\n")
+	writeFile(t, filepath.Join(rootB, "t.md"), "line1\nB\n")
+
+	res, err := syncpkg.RunSync(opts, zap.NewNop())
+	if err != nil {
+		t.Fatalf("merge sync: %v", err)
+	}
+	if res.Diff3Available {
+		t.Fatalf("expected diff3 missing")
+	}
+	merged := readFile(t, filepath.Join(rootA, "t.md"))
+	if !strings.Contains(merged, "<<<<<<< SIDE_A") {
+		t.Fatalf("expected marker merge, got %q", merged)
+	}
+}
+
 func testTime(sec int64) time.Time {
 	return time.Unix(sec, 0)
 }

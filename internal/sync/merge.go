@@ -11,12 +11,12 @@ type mergeInputs struct {
 	BaseBytes  []byte
 	SideABytes []byte
 	SideBBytes []byte
-	UseDiff3   bool
+	Diff3Path  string
 }
 
 func mergeThreeWay(inputs mergeInputs) ([]byte, bool) {
-	if inputs.UseDiff3 {
-		merged, ok := mergeWithDiff3(inputs.BaseBytes, inputs.SideABytes, inputs.SideBBytes)
+	if inputs.Diff3Path != "" {
+		merged, ok := mergeWithDiff3(inputs.Diff3Path, inputs.BaseBytes, inputs.SideABytes, inputs.SideBBytes)
 		if ok {
 			return merged, true
 		}
@@ -40,9 +40,8 @@ func mergeWithMarkers(sideA []byte, sideB []byte) []byte {
 	return buffer.Bytes()
 }
 
-func mergeWithDiff3(base []byte, sideA []byte, sideB []byte) ([]byte, bool) {
-	diff3Path, lookupErr := exec.LookPath("diff3")
-	if lookupErr != nil {
+func mergeWithDiff3(diff3Path string, base []byte, sideA []byte, sideB []byte) ([]byte, bool) {
+	if diff3Path == "" {
 		return nil, false
 	}
 	tempDir, tempErr := os.MkdirTemp("", "filez-sync-merge-*")
