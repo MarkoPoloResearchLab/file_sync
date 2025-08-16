@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/MarkoPoloResearchLab/file_sync/internal/logging"
-	syncpkg "github.com/MarkoPoloResearchLab/file_sync/internal/sync"
+        "github.com/MarkoPoloResearchLab/zync/internal/logging"
+        syncpkg "github.com/MarkoPoloResearchLab/zync/internal/sync"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -15,7 +15,7 @@ import (
 var (
 	logger  *zap.Logger
 	rootCmd = &cobra.Command{
-		Use:   "filez-sync [flags] <root_a> <root_b>",
+                Use:   "zync [flags] <root_a> <root_b>",
 		Short: "Synchronize files between two directories",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -76,7 +76,7 @@ func init() {
 	flags.Bool("no-backups", false, "disable .bak files when overwriting")
 	flags.String("log-level", "info", "log level")
 
-	viper.SetEnvPrefix("FILEZ")
+        viper.SetEnvPrefix("ZYNC")
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	viper.AutomaticEnv()
 

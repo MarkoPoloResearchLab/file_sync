@@ -1,6 +1,6 @@
-# filez-sync
+# zync
 
-`filez-sync` is a standalone Go tool for **bidirectional file synchronization** with proper **3-way merges** for Markdown (or any other text) files, designed to replace `unison` for cases where you need:
+`zync` is a standalone Go tool for **bidirectional file synchronization** with proper **3-way merges** for Markdown (or any other text) files, designed to replace `unison` for cases where you need:
 
 * Persistent merge history (per-file ancestor snapshots)
 * Automatic use of `diff3` for conflict resolution
@@ -24,26 +24,26 @@ Designed for syncing any two directories without assumptions about their content
 
 ## Usage
 
-You can obtain and run `filez-sync` in several ways.
+You can obtain and run `zync` in several ways.
 
 ### Install with Go
 
 Requires Go 1.24+ and optionally GNU `diff3` in your `PATH`.
 
 ```bash
-go install github.com/MarkoPoloResearchLab/file_sync/cmd/filez-sync@latest
+go install github.com/MarkoPoloResearchLab/zync/cmd/zync@latest
 ```
 
 The binary will be placed in `$(go env GOPATH)/bin` (or `GOBIN` if set).
 
 ### Download Prebuilt Binaries
 
-Precompiled binaries are available on the [releases page](https://github.com/MarkoPoloResearchLab/file_sync/releases).
+Precompiled binaries are available on the [releases page](https://github.com/MarkoPoloResearchLab/zync/releases).
 For example, on Linux x86_64:
 
 ```bash
-curl -L https://github.com/MarkoPoloResearchLab/file_sync/releases/latest/download/filez-sync_Linux_x86_64.tar.gz | tar -xz
-sudo mv filez-sync /usr/local/bin/
+curl -L https://github.com/MarkoPoloResearchLab/zync/releases/latest/download/zync_Linux_x86_64.tar.gz | tar -xz
+sudo mv zync /usr/local/bin/
 ```
 
 ### Docker Image
@@ -51,12 +51,12 @@ sudo mv filez-sync /usr/local/bin/
 A prebuilt image is published to the GitHub Container Registry whenever Go files change on `master`.
 
 ```bash
-docker pull ghcr.io/<OWNER>/filez-sync:latest
+docker pull ghcr.io/<OWNER>/zync:latest
 docker run --rm \
   -v /path/to/dir_a:/a \
   -v /path/to/dir_b:/b \
   -v /path/to/state:/state \
-  ghcr.io/<OWNER>/filez-sync:latest \
+  ghcr.io/<OWNER>/zync:latest \
   /a /b --state-dir /state
 ```
 
@@ -65,11 +65,11 @@ Replace `<OWNER>` with the GitHub username or organization that owns the reposit
 ### CLI
 
 ```bash
-filez-sync /path/to/dir_a /path/to/dir_b \
+zync /path/to/dir_a /path/to/dir_b \
   --state-dir /path/to/state
 ```
 
-By default, `filez-sync` walks both directories **recursively** and
+By default, `zync` walks both directories **recursively** and
 synchronizes all files because `--include` defaults to `*`. The pattern
 supplied to `--include` is matched against each file's relative path and file
 name. Provide a more restrictive glob to limit which files are synchronized.
@@ -77,7 +77,7 @@ For example, to sync only Markdown files, use `--include "*.md"`.
 
 ```bash
 # Only sync Markdown files
-filez-sync /path/to/dir_a /path/to/dir_b \
+zync /path/to/dir_a /path/to/dir_b \
   --state-dir /path/to/state \
   --include "*.md"
 ```
@@ -114,10 +114,10 @@ filez-sync /path/to/dir_a /path/to/dir_b \
 ## Example
 
 ```bash
-filez-sync \
+zync \
   ~/Documents/ProjectA \
   /mnt/backup/ProjectA \
-  --state-dir ~/.filez-sync-state
+  --state-dir ~/.zync-state
 ```
 
 ---
