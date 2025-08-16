@@ -21,7 +21,7 @@ func TestConfigurationLoadingAndLoggerInit(t *testing.T) {
 	}{
 		{
 			name:            "EnvOverridesConfig",
-			env:             map[string]string{"FILEZ_NO_BACKUPS": "true"},
+                        env:             map[string]string{"ZYNC_NO_BACKUPS": "true"},
 			cfg:             "state-dir: %s\nlog-level: debug\nno-backups: false\n",
 			expectNoBackups: true,
 			debugEnabled:    true,
@@ -64,7 +64,7 @@ func TestConfigurationLoadingAndLoggerInit(t *testing.T) {
 			}()
 
 			viper.Reset()
-			viper.SetEnvPrefix("FILEZ")
+                        viper.SetEnvPrefix("ZYNC")
 			viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 			viper.AutomaticEnv()
 			viper.BindPFlag("state-dir", rootCmd.Flags().Lookup("state-dir"))

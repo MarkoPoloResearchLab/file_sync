@@ -1,4 +1,4 @@
-module github.com/MarkoPoloResearchLab/file_sync
+module github.com/MarkoPoloResearchLab/zync
 
 go 1.24.6
 

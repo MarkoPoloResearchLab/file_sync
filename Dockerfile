@@ -4,8 +4,8 @@ FROM golang:1.24 AS build
 WORKDIR /src
 COPY go.mod ./
 COPY . .
-RUN go build -o /filez-sync ./cmd/filez-sync
+RUN go build -o /zync ./cmd/zync
 
 FROM debian:bookworm-slim
-COPY --from=build /filez-sync /usr/local/bin/filez-sync
-ENTRYPOINT ["filez-sync"]
+COPY --from=build /zync /usr/local/bin/zync
+ENTRYPOINT ["zync"]

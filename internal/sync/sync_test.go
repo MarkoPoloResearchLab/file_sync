@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	syncpkg "github.com/MarkoPoloResearchLab/file_sync/internal/sync"
+        syncpkg "github.com/MarkoPoloResearchLab/zync/internal/sync"
 	"go.uber.org/zap"
 )
 

@@ -44,7 +44,7 @@ func mergeWithDiff3(diff3Path string, base []byte, sideA []byte, sideB []byte) (
 	if diff3Path == "" {
 		return nil, false
 	}
-	tempDir, tempErr := os.MkdirTemp("", "filez-sync-merge-*")
+        tempDir, tempErr := os.MkdirTemp("", "zync-merge-*")
 	if tempErr != nil {
 		return nil, false
 	}
