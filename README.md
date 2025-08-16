@@ -22,19 +22,31 @@ Tested for syncing two Obsidian vaults across directories, but works for any two
 
 ---
 
-## Installation
+## Usage
 
-### Prerequisites
-- Go 1.24+ (tested on Linux, macOS)
-- (Optional) GNU `diff3` in `PATH` for better merge quality
+You can obtain and run `filez-sync` in several ways.
+
+### Install with Go
+
+Requires Go 1.24+ and optionally GNU `diff3` in your `PATH`.
 
 ```bash
-go install ./cmd/filez-sync
+go install github.com/MarkoPoloResearchLab/file_sync/cmd/filez-sync@latest
 ```
 
-This will produce a binary `filez-sync`.
+The binary will be placed in `$(go env GOPATH)/bin` (or `GOBIN` if set).
 
-### Docker
+### Download Prebuilt Binaries
+
+Precompiled binaries are available on the [releases page](https://github.com/MarkoPoloResearchLab/file_sync/releases).
+For example, on Linux x86_64:
+
+```bash
+curl -L https://github.com/MarkoPoloResearchLab/file_sync/releases/latest/download/filez-sync_Linux_x86_64.tar.gz | tar -xz
+sudo mv filez-sync /usr/local/bin/
+```
+
+### Docker Image
 
 A prebuilt image is published to the GitHub Container Registry whenever Go files change on `master`.
 
@@ -50,9 +62,7 @@ docker run --rm \
 
 Replace `<OWNER>` with the GitHub username or organization that owns the repository.
 
----
-
-## Usage
+### CLI
 
 ```bash
 filez-sync /path/to/vault_a /path/to/vault_b \
