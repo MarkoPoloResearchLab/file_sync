@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"time"
@@ -106,11 +107,12 @@ func RunSync(options Options, logger *zap.Logger) (SyncResult, error) {
 	}
 	sort.Strings(relativeList)
 
-	diff3Available := diff3IsAvailable()
+	diff3Path, lookupErr := exec.LookPath("diff3")
+	diff3Available := lookupErr == nil
 	result.Diff3Available = diff3Available
 
 	for _, relativePath := range relativeList {
-		changed, tag, procErr := processSingleFile(relativePath, options, store, state, diff3Available, logger)
+		changed, tag, procErr := processSingleFile(relativePath, options, store, state, diff3Path, logger)
 		if procErr != nil {
 			if logger != nil {
 				logger.Error("process file", zap.String("path", relativePath), zap.Error(procErr))
@@ -132,18 +134,6 @@ func RunSync(options Options, logger *zap.Logger) (SyncResult, error) {
 	return result, nil
 }
 
-func diff3IsAvailable() bool {
-	_, err := os.Stat("/usr/bin/diff3")
-	if err == nil {
-		return true
-	}
-	_, err = os.Stat("/bin/diff3")
-	if err == nil {
-		return true
-	}
-	return false
-}
-
 func readAll(path string) ([]byte, error) {
 	return os.ReadFile(path)
 }
@@ -155,7 +145,7 @@ func writeAllEnsure(path string, data []byte) error {
 	return os.WriteFile(path, data, 0o644)
 }
 
-func processSingleFile(relativePath string, options Options, store *stateStore, state *syncState, diff3Available bool, logger *zap.Logger) (bool, string, error) {
+func processSingleFile(relativePath string, options Options, store *stateStore, state *syncState, diff3Path string, logger *zap.Logger) (bool, string, error) {
 	pathA := filepath.Join(options.RootAPath, relativePath)
 	pathB := filepath.Join(options.RootBPath, relativePath)
 
@@ -311,7 +301,7 @@ func processSingleFile(relativePath string, options Options, store *stateStore, 
 		BaseBytes:  baseBytes,
 		SideABytes: contentA,
 		SideBBytes: contentB,
-		UseDiff3:   diff3Available,
+		Diff3Path:  diff3Path,
 	})
 
 	if err := writeAllEnsure(pathA, merged); err != nil {
