@@ -1,13 +1,13 @@
 # filez-sync
 
-`filez-sync` is a standalone Go tool for **bidirectional file synchronization** with proper **3-way merges** for Markdown (or any other text) files, designed to replace `unison` for cases where you need:
+`filez-sync` is a standalone Go tool for **bidirectional file synchronization** with proper **3-way merges** for text files. It is designed to replace `unison` for cases where you need:
 
 * Persistent merge history (per-file ancestor snapshots)
 * Automatic use of `diff3` for conflict resolution
-* Ignoring extra directories/files like `.obsidian` or `node_modules`
+* Ignoring extra directories/files like `.git` or `node_modules`
 * Optional backup of conflicting files before merging
 
-Tested for syncing two Obsidian vaults across directories, but works for any two folders.
+Works for any pair of directories.
 
 ---
 
@@ -16,7 +16,7 @@ Tested for syncing two Obsidian vaults across directories, but works for any two
 - **True 3-Way Merge** — if a common ancestor exists, uses GNU `diff3` for merging.
 - **2-Way Merge Fallback** — if no ancestor exists, picks newer file by mtime, or embeds both with conflict markers.
 - **Persistent Ancestor Store** — keeps ancestor blobs in a dedicated state directory for future merges.
-- **Ignore Lists** — loaded from `.filezignore` to skip system trash folders, `.obsidian`, `.git`, `node_modules`, etc.
+- **Ignore Lists** — loaded from `.filezignore` to skip system trash folders, `.git`, `node_modules`, etc.
 - **Optional Backups** — creates `.bak.a` / `.bak.b` before overwriting on conflicts.
 - **Hash-Based Ancestor Tracking** — SHA-256 hashes ensure no accidental mix-ups.
 
@@ -41,11 +41,11 @@ A prebuilt image is published to the GitHub Container Registry whenever Go files
 ```bash
 docker pull ghcr.io/<OWNER>/filez-sync:latest
 docker run --rm \
-  -v /path/to/vault_a:/a \
-  -v /path/to/vault_b:/b \
+  -v /path/to/dir_a:/a \
+  -v /path/to/dir_b:/b \
   -v /path/to/state:/state \
   ghcr.io/<OWNER>/filez-sync:latest \
-  /a /b --state-dir /state --include "*.md"
+  /a /b --state-dir /state --include '*'
 ```
 
 Replace `<OWNER>` with the GitHub username or organization that owns the repository.
@@ -55,16 +55,12 @@ Replace `<OWNER>` with the GitHub username or organization that owns the reposit
 ## Usage
 
 ```bash
-filez-sync /path/to/vault_a /path/to/vault_b \
+filez-sync /path/to/dir_a /path/to/dir_b \
   --state-dir /path/to/state \
-  --include "*.md"
+  --include '*'
 ```
 
-By default, `filez-sync` walks both directories **recursively**. The pattern
-supplied to `--include` is matched against each file's relative path and file
-name. If you omit `--include`, the tool uses the default pattern `*.md` and only
-Markdown files are synchronized. To sync all files, pass a glob such as
-`--include '*'`.
+By default, `filez-sync` walks both directories **recursively**. Use `--include` to match files by glob against each file's relative path and name. For example, `--include '*'` syncs everything, while `--include '*.txt'` limits the run to text files.
 
 ### Arguments
 
@@ -73,7 +69,7 @@ Markdown files are synchronized. To sync all files, pass a glob such as
 | `root_a`       | ✅        | —       | First root directory                            |
 | `root_b`       | ✅        | —       | Second root directory                           |
 | `--state-dir`  | ✅        | —       | Directory for persistent sync state & ancestors |
-| `--include`    | ❌        | `*.md`  | Glob for files to sync                          |
+| `--include`    | ❌        | —       | Glob for files to sync (defaults to an internal pattern) |
 | `--no-backups` | ❌        | false   | Skip creation of `.bak.a` / `.bak.b`            |
 | `--ignore-file` | ❌       | `.filezignore` | `.gitignore`-style file listing paths/patterns to ignore |
 
@@ -100,9 +96,10 @@ Markdown files are synchronized. To sync all files, pass a glob such as
 
 ```bash
 filez-sync \
-  ~/Documents/ObsidianVault \
-  /mnt/backup/ObsidianVault \
-  --state-dir ~/.obsidian-sync-state
+  ~/Documents/ProjectA \
+  /mnt/backup/ProjectA \
+  --state-dir ~/.filez-sync-state \
+  --include '*'
 ```
 
 ---
@@ -114,7 +111,6 @@ filez-sync \
 
 ```gitignore
 # Directories
-.obsidian/
 .git/
 node_modules/
 @eaDir/
