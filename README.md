@@ -1,6 +1,6 @@
 # zync
 
-`zync` is a standalone Go tool for **bidirectional file synchronization** with proper **3-way merges** for Markdown (or any other text) files, designed to replace `unison` for cases where you need:
+`zync` is a standalone Go tool for **bidirectional file synchronization** with proper **3-way merges**, designed to replace `unison` for cases where you need:
 
 * Persistent merge history (per-file ancestor snapshots)
 * Automatic use of `diff3` for conflict resolution
@@ -51,7 +51,7 @@ sudo mv zync /usr/local/bin/
 A prebuilt image is published to the GitHub Container Registry whenever Go files change on `master`.
 
 ```bash
-docker pull ghcr.io/<OWNER>/zync:latest
+docker pull ghcr.io/markopoloresearchlab/zync:latest
 docker run --rm \
   -v /path/to/dir_a:/a \
   -v /path/to/dir_b:/b \
@@ -59,8 +59,6 @@ docker run --rm \
   ghcr.io/<OWNER>/zync:latest \
   /a /b --state-dir /state
 ```
-
-Replace `<OWNER>` with the GitHub username or organization that owns the repository.
 
 ### CLI
 
