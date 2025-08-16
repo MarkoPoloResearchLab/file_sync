@@ -2,11 +2,13 @@ package main
 
 import (
 	"errors"
+	"io/fs"
 	"os"
 	"strings"
 
 	"github.com/MarkoPoloResearchLab/file_sync/internal/logging"
 	syncpkg "github.com/MarkoPoloResearchLab/file_sync/internal/sync"
+	"github.com/sabhiram/go-gitignore"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -22,6 +24,7 @@ var (
 			stateDir := viper.GetString("state-dir")
 			includePattern := viper.GetString("include")
 			disableBackups := viper.GetBool("no-backups")
+			ignoreFile := viper.GetString("ignore-file")
 
 			if stateDir == "" {
 				err := errors.New("--state-dir is required")
@@ -29,26 +32,19 @@ var (
 				return err
 			}
 
+			ignoreMatcher, err := loadIgnoreMatcher(ignoreFile)
+			if err != nil {
+				logger.Error("read ignore file", zap.String("path", ignoreFile), zap.Error(err))
+				return err
+			}
+
 			options := syncpkg.Options{
-				RootAPath:            args[0],
-				RootBPath:            args[1],
-				StateDirectory:       stateDir,
-				IncludeGlob:          includePattern,
-				CreateBackupsOnWrite: !disableBackups,
-				IgnorePathPrefixes: []string{
-					".obsidian",
-					".git",
-					"node_modules",
-					"@eaDir",
-					"#recycle",
-				},
-				IgnoreFileNames: []string{
-					".Trash*",
-					".DS_Store",
-					"._*",
-					"Thumbs.db",
-					"desktop.ini",
-				},
+				RootAPath:                   args[0],
+				RootBPath:                   args[1],
+				StateDirectory:              stateDir,
+				IncludeGlob:                 includePattern,
+				CreateBackupsOnWrite:        !disableBackups,
+				IgnoreMatcher:               ignoreMatcher,
 				ConflictMtimeEpsilonSeconds: 1.0,
 			}
 
@@ -75,6 +71,7 @@ func init() {
 	flags.String("include", "*.md", "glob for files to sync")
 	flags.Bool("no-backups", false, "disable .bak files when overwriting")
 	flags.String("log-level", "info", "log level")
+	flags.String("ignore-file", ".filezignore", "path to .ignore-style file with ignore patterns")
 
 	viper.SetEnvPrefix("FILEZ")
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
@@ -84,6 +81,7 @@ func init() {
 	viper.BindPFlag("include", flags.Lookup("include"))
 	viper.BindPFlag("no-backups", flags.Lookup("no-backups"))
 	viper.BindPFlag("log-level", flags.Lookup("log-level"))
+	viper.BindPFlag("ignore-file", flags.Lookup("ignore-file"))
 
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
 		viper.SetConfigFile("config.yaml")
@@ -117,4 +115,15 @@ func main() {
 	if logger != nil {
 		_ = logger.Sync()
 	}
+}
+
+func loadIgnoreMatcher(path string) (*ignore.GitIgnore, error) {
+	ig, err := ignore.CompileIgnoreFile(path)
+	if err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			return ignore.CompileIgnoreLines(), nil
+		}
+		return nil, err
+	}
+	return ig, nil
 }

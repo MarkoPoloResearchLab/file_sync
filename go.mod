@@ -3,6 +3,7 @@ module github.com/MarkoPoloResearchLab/file_sync
 go 1.24.6
 
 require (
+	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
 	go.uber.org/zap v1.27.0
