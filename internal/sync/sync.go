@@ -57,9 +57,7 @@ func RunSync(options Options, logger *zap.Logger) (SyncResult, error) {
 			return nil
 		}
 		rel, _ := filepath.Rel(options.RootAPath, currentPath)
-		matchRel, _ := filepath.Match(options.IncludeGlob, filepath.ToSlash(rel))
-		matchName, _ := filepath.Match(options.IncludeGlob, fileName)
-		if matchRel || matchName {
+		if shouldInclude(rel, fileName, options.IncludeGlob) {
 			relativeSet[filepath.ToSlash(rel)] = struct{}{}
 		}
 		return nil
@@ -87,9 +85,7 @@ func RunSync(options Options, logger *zap.Logger) (SyncResult, error) {
 			return nil
 		}
 		rel, _ := filepath.Rel(options.RootBPath, currentPath)
-		matchRel, _ := filepath.Match(options.IncludeGlob, filepath.ToSlash(rel))
-		matchName, _ := filepath.Match(options.IncludeGlob, fileName)
-		if matchRel || matchName {
+		if shouldInclude(rel, fileName, options.IncludeGlob) {
 			relativeSet[filepath.ToSlash(rel)] = struct{}{}
 		}
 		return nil

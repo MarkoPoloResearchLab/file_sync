@@ -25,3 +25,12 @@ func shouldIgnoreName(fileName string, ignoreNames []string) bool {
 	}
 	return false
 }
+
+func shouldInclude(relativePath, fileName, includeGlob string) bool {
+	if includeGlob == "" {
+		return true
+	}
+	matchRel, _ := filepath.Match(includeGlob, filepath.ToSlash(relativePath))
+	matchName, _ := filepath.Match(includeGlob, fileName)
+	return matchRel || matchName
+}
