@@ -7,7 +7,7 @@
 * Ignoring extra directories/files like `.obsidian` or `node_modules`
 * Optional backup of conflicting files before merging
 
-Tested for syncing two Obsidian vaults across directories, but works for any two folders.
+Designed for syncing any two directories without assumptions about their contents.
 
 ---
 
@@ -53,8 +53,8 @@ A prebuilt image is published to the GitHub Container Registry whenever Go files
 ```bash
 docker pull ghcr.io/<OWNER>/filez-sync:latest
 docker run --rm \
-  -v /path/to/vault_a:/a \
-  -v /path/to/vault_b:/b \
+  -v /path/to/dir_a:/a \
+  -v /path/to/dir_b:/b \
   -v /path/to/state:/state \
   ghcr.io/<OWNER>/filez-sync:latest \
   /a /b --state-dir /state
@@ -65,7 +65,7 @@ Replace `<OWNER>` with the GitHub username or organization that owns the reposit
 ### CLI
 
 ```bash
-filez-sync /path/to/vault_a /path/to/vault_b \
+filez-sync /path/to/dir_a /path/to/dir_b \
   --state-dir /path/to/state
 ```
 
@@ -77,7 +77,7 @@ For example, to sync only Markdown files, use `--include "*.md"`.
 
 ```bash
 # Only sync Markdown files
-filez-sync /path/to/vault_a /path/to/vault_b \
+filez-sync /path/to/dir_a /path/to/dir_b \
   --state-dir /path/to/state \
   --include "*.md"
 ```
@@ -115,9 +115,9 @@ filez-sync /path/to/vault_a /path/to/vault_b \
 
 ```bash
 filez-sync \
-  ~/Documents/ObsidianVault \
-  /mnt/backup/ObsidianVault \
-  --state-dir ~/.obsidian-sync-state
+  ~/Documents/ProjectA \
+  /mnt/backup/ProjectA \
+  --state-dir ~/.filez-sync-state
 ```
 
 ---
