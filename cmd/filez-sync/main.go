@@ -84,19 +84,10 @@ func init() {
 	viper.BindPFlag("ignore-file", flags.Lookup("ignore-file"))
 
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
-		viper.SetConfigFile("config.yaml")
-		cfgErr := viper.ReadInConfig()
-
 		var err error
 		logger, err = logging.NewLogger()
 		if err != nil {
 			return err
-		}
-
-		if cfgErr != nil {
-			if _, ok := cfgErr.(viper.ConfigFileNotFoundError); !ok {
-				logger.Error("error reading config file", zap.Error(cfgErr))
-			}
 		}
 		return nil
 	}
