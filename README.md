@@ -60,6 +60,12 @@ filez-sync /path/to/vault_a /path/to/vault_b \
   --include "*.md"
 ```
 
+By default, `filez-sync` walks both directories **recursively**. The pattern
+supplied to `--include` is matched against each file's relative path and file
+name. If you omit `--include`, the tool uses the default pattern `*.md` and only
+Markdown files are synchronized. To sync all files, pass a glob such as
+`--include '*'`.
+
 ### Arguments
 
 | Argument       | Required | Default | Description                                     |
