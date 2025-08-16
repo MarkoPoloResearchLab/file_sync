@@ -33,19 +33,12 @@ func readFile(t *testing.T, path string) string {
 	return string(data)
 }
 
-func defaultOptions(rootA string, rootB string, stateDir string) syncpkg.Options {
-	ig := ignore.CompileIgnoreLines(
-		".obsidian/",
-		".git/",
-		"node_modules/",
-		"@eaDir/",
-		"#recycle/",
-		".Trash*",
-		".DS_Store",
-		"._*",
-		"Thumbs.db",
-		"desktop.ini",
-	)
+func defaultOptions(t *testing.T, rootA, rootB, stateDir string) syncpkg.Options {
+	t.Helper()
+	ig, err := ignore.CompileIgnoreFile(filepath.Join("..", "..", ".filezignore"))
+	if err != nil {
+		t.Fatalf("compile ignore file: %v", err)
+	}
 
 	return syncpkg.Options{
 		RootAPath:                   rootA,
@@ -67,7 +60,7 @@ func TestRunSync(t *testing.T) {
 			name: "CreateFromSideA",
 			run: func(t *testing.T, rootA, rootB, state string) {
 				writeFile(t, filepath.Join(rootA, "Personal", "Note.md"), "hello")
-				opts := defaultOptions(rootA, rootB, state)
+				opts := defaultOptions(t, rootA, rootB, state)
 				res, err := syncpkg.RunSync(opts, zap.NewNop())
 				if err != nil {
 					t.Fatalf("sync err: %v", err)
@@ -86,7 +79,7 @@ func TestRunSync(t *testing.T) {
 			run: func(t *testing.T, rootA, rootB, state string) {
 				writeFile(t, filepath.Join(rootA, "a.md"), "same")
 				writeFile(t, filepath.Join(rootB, "a.md"), "same")
-				opts := defaultOptions(rootA, rootB, state)
+				opts := defaultOptions(t, rootA, rootB, state)
 				res, err := syncpkg.RunSync(opts, zap.NewNop())
 				if err != nil {
 					t.Fatalf("sync err: %v", err)
@@ -105,7 +98,7 @@ func TestRunSync(t *testing.T) {
 					os.Chtimes(filepath.Join(rootA, "n.md"), testTime(2000), testTime(2000))
 					os.Chtimes(filepath.Join(rootB, "n.md"), testTime(3000), testTime(3000))
 				}
-				opts := defaultOptions(rootA, rootB, state)
+				opts := defaultOptions(t, rootA, rootB, state)
 				res, err := syncpkg.RunSync(opts, zap.NewNop())
 				if err != nil {
 					t.Fatalf("sync err: %v", err)
@@ -128,7 +121,7 @@ func TestRunSync(t *testing.T) {
 			run: func(t *testing.T, rootA, rootB, state string) {
 				writeFile(t, filepath.Join(rootA, "t.md"), "line1\n")
 				writeFile(t, filepath.Join(rootB, "t.md"), "line1\n")
-				opts := defaultOptions(rootA, rootB, state)
+				opts := defaultOptions(t, rootA, rootB, state)
 				if _, err := syncpkg.RunSync(opts, zap.NewNop()); err != nil {
 					t.Fatalf("initial sync: %v", err)
 				}
@@ -154,7 +147,7 @@ func TestRunSync(t *testing.T) {
 				writeFile(t, filepath.Join(rootB, ".obsidian", "state.json"), "x")
 				writeFile(t, filepath.Join(rootA, ".DS_Store"), "trash")
 				writeFile(t, filepath.Join(rootA, "kept.md"), "K")
-				opts := defaultOptions(rootA, rootB, state)
+				opts := defaultOptions(t, rootA, rootB, state)
 				res, err := syncpkg.RunSync(opts, zap.NewNop())
 				if err != nil {
 					t.Fatalf("sync err: %v", err)

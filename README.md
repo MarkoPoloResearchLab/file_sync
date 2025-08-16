@@ -118,7 +118,7 @@ filez-sync \
 .git/
 node_modules/
 @eaDir/
-#recycle/
+\#recycle/
 
 # Files
 .Trash*
