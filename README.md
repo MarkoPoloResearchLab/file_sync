@@ -45,7 +45,7 @@ docker run --rm \
   -v /path/to/vault_b:/b \
   -v /path/to/state:/state \
   ghcr.io/<OWNER>/filez-sync:latest \
-  /a /b --state-dir /state --include "*.md"
+  /a /b --state-dir /state
 ```
 
 Replace `<OWNER>` with the GitHub username or organization that owns the repository.
@@ -56,15 +56,21 @@ Replace `<OWNER>` with the GitHub username or organization that owns the reposit
 
 ```bash
 filez-sync /path/to/vault_a /path/to/vault_b \
+  --state-dir /path/to/state
+```
+
+By default, `filez-sync` walks both directories **recursively** and
+synchronizes all files because `--include` defaults to `*`. The pattern
+supplied to `--include` is matched against each file's relative path and file
+name. Provide a more restrictive glob to limit which files are synchronized.
+For example, to sync only Markdown files, use `--include "*.md"`.
+
+```bash
+# Only sync Markdown files
+filez-sync /path/to/vault_a /path/to/vault_b \
   --state-dir /path/to/state \
   --include "*.md"
 ```
-
-By default, `filez-sync` walks both directories **recursively**. The pattern
-supplied to `--include` is matched against each file's relative path and file
-name. If you omit `--include`, the tool uses the default pattern `*.md` and only
-Markdown files are synchronized. To sync all files, pass a glob such as
-`--include '*'`.
 
 ### Arguments
 
@@ -73,7 +79,7 @@ Markdown files are synchronized. To sync all files, pass a glob such as
 | `root_a`       | ✅        | —       | First root directory                            |
 | `root_b`       | ✅        | —       | Second root directory                           |
 | `--state-dir`  | ✅        | —       | Directory for persistent sync state & ancestors |
-| `--include`    | ❌        | `*.md`  | Glob for files to sync                          |
+| `--include`    | ❌        | `*`     | Glob to restrict synced files                   |
 | `--no-backups` | ❌        | false   | Skip creation of `.bak.a` / `.bak.b`            |
 
 ---

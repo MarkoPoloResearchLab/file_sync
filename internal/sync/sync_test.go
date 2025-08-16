@@ -36,7 +36,7 @@ func defaultOptions(rootA, rootB, state string) syncpkg.Options {
 		RootAPath:                   rootA,
 		RootBPath:                   rootB,
 		StateDirectory:              state,
-		IncludeGlob:                 "*.md",
+		IncludeGlob:                 "*",
 		IgnorePathPrefixes:          []string{".obsidian", ".git", "node_modules", "@eaDir", "#recycle"},
 		IgnoreFileNames:             []string{".Trash*", ".DS_Store", "._*", "Thumbs.db", "desktop.ini"},
 		CreateBackupsOnWrite:        true,
@@ -49,6 +49,24 @@ func TestRunSync(t *testing.T) {
 		name string
 		run  func(t *testing.T, rootA, rootB, state string)
 	}{
+		{
+			name: "SyncAllByDefault",
+			run: func(t *testing.T, rootA, rootB, state string) {
+				writeFile(t, filepath.Join(rootA, "note.txt"), "hello")
+				opts := defaultOptions(rootA, rootB, state)
+				res, err := syncpkg.RunSync(opts, zap.NewNop())
+				if err != nil {
+					t.Fatalf("sync err: %v", err)
+				}
+				if res.ChangedFileCount != 1 {
+					t.Fatalf("changed count = %d", res.ChangedFileCount)
+				}
+				got := readFile(t, filepath.Join(rootB, "note.txt"))
+				if got != "hello" {
+					t.Fatalf("unexpected content: %q", got)
+				}
+			},
+		},
 		{
 			name: "CreateFromSideA",
 			run: func(t *testing.T, rootA, rootB, state string) {
@@ -64,6 +82,28 @@ func TestRunSync(t *testing.T) {
 				got := readFile(t, filepath.Join(rootB, "Personal", "Note.md"))
 				if got != "hello" {
 					t.Fatalf("unexpected content: %q", got)
+				}
+			},
+		},
+		{
+			name: "IncludeGlobRestricts",
+			run: func(t *testing.T, rootA, rootB, state string) {
+				writeFile(t, filepath.Join(rootA, "keep.md"), "K")
+				writeFile(t, filepath.Join(rootA, "skip.txt"), "S")
+				opts := defaultOptions(rootA, rootB, state)
+				opts.IncludeGlob = "*.md"
+				res, err := syncpkg.RunSync(opts, zap.NewNop())
+				if err != nil {
+					t.Fatalf("sync err: %v", err)
+				}
+				if res.ChangedFileCount != 1 {
+					t.Fatalf("expected one change for keep.md")
+				}
+				if _, err := os.Stat(filepath.Join(rootB, "keep.md")); err != nil {
+					t.Fatalf("keep.md missing: %v", err)
+				}
+				if _, err := os.Stat(filepath.Join(rootB, "skip.txt")); !os.IsNotExist(err) {
+					t.Fatalf("skip.txt should not be synced")
 				}
 			},
 		},

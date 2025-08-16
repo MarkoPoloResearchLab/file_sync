@@ -72,7 +72,7 @@ var (
 func init() {
 	flags := rootCmd.Flags()
 	flags.String("state-dir", "", "directory for persistent state")
-	flags.String("include", "*.md", "glob for files to sync")
+	flags.String("include", "*", "glob to restrict synced files (default '*')")
 	flags.Bool("no-backups", false, "disable .bak files when overwriting")
 	flags.String("log-level", "info", "log level")
 
