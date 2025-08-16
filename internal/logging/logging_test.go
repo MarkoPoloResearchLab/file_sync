@@ -12,9 +12,11 @@ func TestNewLoggerRespectsLogLevel(t *testing.T) {
 		name        string
 		level       string
 		enableDebug bool
+		wantErr     bool
 	}{
-		{"debug", "debug", true},
-		{"info", "info", false},
+		{"debug", "debug", true, false},
+		{"info", "info", false, false},
+		{"invalid", "bogus", false, true},
 	}
 
 	for _, tc := range cases {
@@ -23,6 +25,12 @@ func TestNewLoggerRespectsLogLevel(t *testing.T) {
 			defer viper.Set("log-level", "")
 
 			logger, err := NewLogger()
+			if tc.wantErr {
+				if err == nil {
+					t.Fatalf("expected error for log level %q", tc.level)
+				}
+				return
+			}
 			if err != nil {
 				t.Fatalf("NewLogger returned error: %v", err)
 			}
