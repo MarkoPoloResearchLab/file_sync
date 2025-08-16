@@ -3,6 +3,10 @@ name: Go Tests
 on:
   pull_request:
     branches: [ master ]
+    paths:
+      - '**/*.go'
+      - go.mod
+      - go.sum
 
 jobs:
   test:
