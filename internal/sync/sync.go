@@ -44,20 +44,18 @@ func RunSync(options Options, logger *zap.Logger) (SyncResult, error) {
 		if walkErr != nil {
 			return walkErr
 		}
+		rel, _ := filepath.Rel(options.RootAPath, currentPath)
 		if d.IsDir() {
-			rel, _ := filepath.Rel(options.RootAPath, currentPath)
-			if rel != "." && shouldIgnorePath(rel, options.IgnorePathPrefixes) {
+			if rel != "." && shouldIgnore(rel, true, options.IgnoreMatcher) {
 				return filepath.SkipDir
 			}
 			return nil
 		}
-		fileName := d.Name()
-		if shouldIgnoreName(fileName, options.IgnoreFileNames) {
+		if shouldIgnore(rel, false, options.IgnoreMatcher) {
 			return nil
 		}
-		rel, _ := filepath.Rel(options.RootAPath, currentPath)
 		matchRel, _ := filepath.Match(options.IncludeGlob, filepath.ToSlash(rel))
-		matchName, _ := filepath.Match(options.IncludeGlob, fileName)
+		matchName, _ := filepath.Match(options.IncludeGlob, d.Name())
 		if matchRel || matchName {
 			relativeSet[filepath.ToSlash(rel)] = struct{}{}
 		}
@@ -74,20 +72,18 @@ func RunSync(options Options, logger *zap.Logger) (SyncResult, error) {
 		if walkErr != nil {
 			return walkErr
 		}
+		rel, _ := filepath.Rel(options.RootBPath, currentPath)
 		if d.IsDir() {
-			rel, _ := filepath.Rel(options.RootBPath, currentPath)
-			if rel != "." && shouldIgnorePath(rel, options.IgnorePathPrefixes) {
+			if rel != "." && shouldIgnore(rel, true, options.IgnoreMatcher) {
 				return filepath.SkipDir
 			}
 			return nil
 		}
-		fileName := d.Name()
-		if shouldIgnoreName(fileName, options.IgnoreFileNames) {
+		if shouldIgnore(rel, false, options.IgnoreMatcher) {
 			return nil
 		}
-		rel, _ := filepath.Rel(options.RootBPath, currentPath)
 		matchRel, _ := filepath.Match(options.IncludeGlob, filepath.ToSlash(rel))
-		matchName, _ := filepath.Match(options.IncludeGlob, fileName)
+		matchName, _ := filepath.Match(options.IncludeGlob, d.Name())
 		if matchRel || matchName {
 			relativeSet[filepath.ToSlash(rel)] = struct{}{}
 		}

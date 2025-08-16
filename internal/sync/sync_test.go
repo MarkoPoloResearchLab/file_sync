@@ -1,4 +1,4 @@
-package sync
+package sync_test
 
 import (
 	"os"
@@ -8,7 +8,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/sabhiram/go-gitignore"
 	"go.uber.org/zap"
+
+	syncpkg "github.com/MarkoPoloResearchLab/file_sync/internal/sync"
 )
 
 func newTempDir(t *testing.T) string {
@@ -39,14 +42,25 @@ func readFile(t *testing.T, path string) string {
 	return string(data)
 }
 
-func defaultOptions(rootA string, rootB string, stateDir string) Options {
-	return Options{
+func defaultOptions(rootA string, rootB string, stateDir string) syncpkg.Options {
+	ig := ignore.CompileIgnoreLines(
+		".obsidian/",
+		".git/",
+		"node_modules/",
+		"@eaDir/",
+		"#recycle/",
+		".Trash*",
+		".DS_Store",
+		"._*",
+		"Thumbs.db",
+		"desktop.ini",
+	)
+	return syncpkg.Options{
 		RootAPath:                   rootA,
 		RootBPath:                   rootB,
 		StateDirectory:              stateDir,
 		IncludeGlob:                 "*.md",
-		IgnorePathPrefixes:          []string{".obsidian", ".git", "node_modules", "@eaDir", "#recycle"},
-		IgnoreFileNames:             []string{".Trash*", ".DS_Store", "._*", "Thumbs.db", "desktop.ini"},
+		IgnoreMatcher:               ig,
 		CreateBackupsOnWrite:        true,
 		ConflictMtimeEpsilonSeconds: 1.0,
 	}
@@ -60,7 +74,7 @@ func TestCreateFromSideA(t *testing.T) {
 	writeFile(t, filepath.Join(rootA, "Personal", "Note.md"), "hello")
 	opts := defaultOptions(rootA, rootB, stateDir)
 
-	res, err := RunSync(opts, zap.NewNop())
+	res, err := syncpkg.RunSync(opts, zap.NewNop())
 	if err != nil {
 		t.Fatalf("sync err: %v", err)
 	}
@@ -82,7 +96,7 @@ func TestEqualNoChange(t *testing.T) {
 	writeFile(t, filepath.Join(rootB, "a.md"), "same")
 
 	opts := defaultOptions(rootA, rootB, stateDir)
-	res, err := RunSync(opts, zap.NewNop())
+	res, err := syncpkg.RunSync(opts, zap.NewNop())
 	if err != nil {
 		t.Fatalf("sync err: %v", err)
 	}
@@ -106,7 +120,7 @@ func TestSeedConflictNewerWins(t *testing.T) {
 	}
 
 	opts := defaultOptions(rootA, rootB, stateDir)
-	res, err := RunSync(opts, zap.NewNop())
+	res, err := syncpkg.RunSync(opts, zap.NewNop())
 	if err != nil {
 		t.Fatalf("sync err: %v", err)
 	}
@@ -133,14 +147,14 @@ func TestThreeWayAfterSeed(t *testing.T) {
 	writeFile(t, filepath.Join(rootB, "t.md"), "line1\n")
 
 	opts := defaultOptions(rootA, rootB, stateDir)
-	if _, err := RunSync(opts, zap.NewNop()); err != nil {
+	if _, err := syncpkg.RunSync(opts, zap.NewNop()); err != nil {
 		t.Fatalf("initial sync: %v", err)
 	}
 
 	writeFile(t, filepath.Join(rootA, "t.md"), "line1\nA\n")
 	writeFile(t, filepath.Join(rootB, "t.md"), "line1\nB\n")
 
-	res, err := RunSync(opts, zap.NewNop())
+	res, err := syncpkg.RunSync(opts, zap.NewNop())
 	if err != nil {
 		t.Fatalf("merge sync: %v", err)
 	}
@@ -160,10 +174,11 @@ func TestIgnores(t *testing.T) {
 
 	writeFile(t, filepath.Join(rootA, ".obsidian", "state.json"), "{}")
 	writeFile(t, filepath.Join(rootB, ".obsidian", "state.json"), "x")
+	writeFile(t, filepath.Join(rootA, ".DS_Store"), "trash")
 	writeFile(t, filepath.Join(rootA, "kept.md"), "K")
 	opts := defaultOptions(rootA, rootB, stateDir)
 
-	res, err := RunSync(opts, zap.NewNop())
+	res, err := syncpkg.RunSync(opts, zap.NewNop())
 	if err != nil {
 		t.Fatalf("sync err: %v", err)
 	}
@@ -171,9 +186,10 @@ func TestIgnores(t *testing.T) {
 		t.Fatalf("expected only one change for kept.md")
 	}
 	if _, err := os.Stat(filepath.Join(rootB, ".obsidian", "state.json")); err != nil {
-		// ignored; file should remain as-is without being merged/overwritten
-	} else {
-		// still present, but must not be counted or touched
+		// ignored directory
+	}
+	if _, err := os.Stat(filepath.Join(rootB, ".DS_Store")); err == nil {
+		t.Fatalf(".DS_Store should be ignored and not synced")
 	}
 }
 
