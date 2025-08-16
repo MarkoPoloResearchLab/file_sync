@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/sabhiram/go-gitignore"
 	"go.uber.org/zap"
 )
 
@@ -40,13 +41,24 @@ func readFile(t *testing.T, path string) string {
 }
 
 func defaultOptions(rootA string, rootB string, stateDir string) Options {
+	ig := ignore.CompileIgnoreLines(
+		".obsidian/",
+		".git/",
+		"node_modules/",
+		"@eaDir/",
+		"#recycle/",
+		".Trash*",
+		".DS_Store",
+		"._*",
+		"Thumbs.db",
+		"desktop.ini",
+	)
 	return Options{
 		RootAPath:                   rootA,
 		RootBPath:                   rootB,
 		StateDirectory:              stateDir,
 		IncludeGlob:                 "*.md",
-		IgnorePathPrefixes:          []string{".obsidian", ".git", "node_modules", "@eaDir", "#recycle"},
-		IgnoreFileNames:             []string{".Trash*", ".DS_Store", "._*", "Thumbs.db", "desktop.ini"},
+		IgnoreMatcher:               ig,
 		CreateBackupsOnWrite:        true,
 		ConflictMtimeEpsilonSeconds: 1.0,
 	}
@@ -160,6 +172,7 @@ func TestIgnores(t *testing.T) {
 
 	writeFile(t, filepath.Join(rootA, ".obsidian", "state.json"), "{}")
 	writeFile(t, filepath.Join(rootB, ".obsidian", "state.json"), "x")
+	writeFile(t, filepath.Join(rootA, ".DS_Store"), "trash")
 	writeFile(t, filepath.Join(rootA, "kept.md"), "K")
 	opts := defaultOptions(rootA, rootB, stateDir)
 
@@ -171,9 +184,10 @@ func TestIgnores(t *testing.T) {
 		t.Fatalf("expected only one change for kept.md")
 	}
 	if _, err := os.Stat(filepath.Join(rootB, ".obsidian", "state.json")); err != nil {
-		// ignored; file should remain as-is without being merged/overwritten
-	} else {
-		// still present, but must not be counted or touched
+		// ignored directory
+	}
+	if _, err := os.Stat(filepath.Join(rootB, ".DS_Store")); err == nil {
+		t.Fatalf(".DS_Store should be ignored and not synced")
 	}
 }
 

@@ -16,7 +16,7 @@ Tested for syncing two Obsidian vaults across directories, but works for any two
 - **True 3-Way Merge** — if a common ancestor exists, uses GNU `diff3` for merging.
 - **2-Way Merge Fallback** — if no ancestor exists, picks newer file by mtime, or embeds both with conflict markers.
 - **Persistent Ancestor Store** — keeps ancestor blobs in a dedicated state directory for future merges.
-- **Ignore Lists** — ignores system trash folders, `.obsidian`, `.git`, `node_modules`, etc.
+- **Ignore Lists** — loaded from `.filezignore` to skip system trash folders, `.obsidian`, `.git`, `node_modules`, etc.
 - **Optional Backups** — creates `.bak.a` / `.bak.b` before overwriting on conflicts.
 - **Hash-Based Ancestor Tracking** — SHA-256 hashes ensure no accidental mix-ups.
 
@@ -69,6 +69,7 @@ filez-sync /path/to/vault_a /path/to/vault_b \
 | `--state-dir`  | ✅        | —       | Directory for persistent sync state & ancestors |
 | `--include`    | ❌        | `*.md`  | Glob for files to sync                          |
 | `--no-backups` | ❌        | false   | Skip creation of `.bak.a` / `.bak.b`            |
+| `--ignore-file` | ❌       | `.filezignore` | `.gitignore`-style file listing paths/patterns to ignore |
 
 ---
 
@@ -102,24 +103,29 @@ filez-sync \
 
 ## Ignore Rules
 
-Directories ignored entirely:
+`filez-sync` reads ignore rules from a `.gitignore`-style file on each run. The default
+`.filezignore` includes:
 
-```
-.obsidian
-.git
-node_modules
-@eaDir
-#recycle
-```
+```gitignore
+# Directories
+.obsidian/
+.git/
+node_modules/
+@eaDir/
+#recycle/
 
-File name patterns ignored:
-
-```
+# Files
 .Trash*
 .DS_Store
 ._*
 Thumbs.db
 desktop.ini
+```
+
+Provide a custom list by editing this file or passing `--ignore-file`:
+
+```bash
+filez-sync --ignore-file my_custom_ignore
 ```
 
 ---

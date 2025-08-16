@@ -1,0 +1,13 @@
+# Directories
+.obsidian/
+.git/
+node_modules/
+@eaDir/
+#recycle/
+
+# Files
+.Trash*
+.DS_Store
+._*
+Thumbs.db
+desktop.ini
