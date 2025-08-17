@@ -35,14 +35,14 @@ jobs:
       - name: Build
         run: |
           GOOS=${{ matrix.GOOS }} GOARCH=${{ matrix.GOARCH }} CGO_ENABLED=0 \
-            go build -o filez-sync-${{ matrix.GOOS }}-${{ matrix.GOARCH }} ./cmd/filez-sync
+            go build -o zync-${{ matrix.GOOS }}-${{ matrix.GOARCH }} ./cmd/zync
       - name: Archive
-        run: tar -czf filez-sync-${{ matrix.GOOS }}-${{ matrix.GOARCH }}.tar.gz \
-          filez-sync-${{ matrix.GOOS }}-${{ matrix.GOARCH }}
+        run: tar -czf zync-${{ matrix.GOOS }}-${{ matrix.GOARCH }}.tar.gz \
+          zync-${{ matrix.GOOS }}-${{ matrix.GOARCH }}
       - name: Upload release asset
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: filez-sync-${{ matrix.GOOS }}-${{ matrix.GOARCH }}.tar.gz
-          asset_name: filez-sync-${{ matrix.GOOS }}-${{ matrix.GOARCH }}.tar.gz
+          asset_path: zync-${{ matrix.GOOS }}-${{ matrix.GOARCH }}.tar.gz
+          asset_name: zync-${{ matrix.GOOS }}-${{ matrix.GOARCH }}.tar.gz
           asset_content_type: application/gzip

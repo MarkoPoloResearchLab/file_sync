@@ -56,7 +56,7 @@ docker run --rm \
   -v /path/to/dir_a:/a \
   -v /path/to/dir_b:/b \
   -v /path/to/state:/state \
-  ghcr.io/<OWNER>/zync:latest \
+  ghcr.io/markopoloresearchlab/zync:latest \
   /a /b --state-dir /state
 ```
 

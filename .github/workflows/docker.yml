@@ -36,4 +36,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ env.REPO_OWNER_LC }}/filez-sync:latest
+          tags: ghcr.io/${{ env.REPO_OWNER_LC }}/zync:latest
