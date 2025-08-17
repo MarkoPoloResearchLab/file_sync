@@ -122,6 +122,14 @@ zync \
 
 ## Ignore Rules
 
+`zync` applies two built-in ignore lists while walking each root. Paths
+whose relative directory prefixes match any entry below are skipped
+entirely, preventing repository metadata or large dependency folders from
+being synchronized. Likewise, files with names matching the glob patterns
+are ignored so that OS-specific trash files or temporary artifacts never
+appear in the other directory. These lists are fixed in the current CLI;
+changing them requires modifying the source.
+
 Directories ignored entirely:
 
 ```
